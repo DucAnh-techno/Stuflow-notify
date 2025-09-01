@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "app/api/fetch-and-send/route.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/fetch-and-send",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
+
