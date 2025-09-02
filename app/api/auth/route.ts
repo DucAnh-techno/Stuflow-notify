@@ -1,4 +1,4 @@
-// Ví dụ: file /app/api/auth/route.ts
+// file /app/api/auth/route.ts
 import {db} from "@/app/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
