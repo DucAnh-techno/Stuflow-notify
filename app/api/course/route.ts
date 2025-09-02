@@ -11,8 +11,8 @@ export async function POST(request: Request) {
 
     const result = await loginAndFetch(username, password, { courseId, categoryId });
     return NextResponse.json({ ok: true, data: result });
-  } catch (err: any) {
+  } catch (err) {
     console.error("API error:", err);
-    return NextResponse.json({ ok: false, error: String(err.message || err) }, { status: 500 });
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

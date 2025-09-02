@@ -3,6 +3,30 @@ import nodemailer from "nodemailer";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
+type Upcoming = {
+  id: string;
+  name?: string;
+  activityname?: string;
+  activitystr?: string;
+  url?: string;
+  popupname?: string;
+  timestart?: number | string;
+  course?: {
+    fullname?: string;
+  } | null;
+};
+
+type Course = {
+    id: string,
+    name: string,
+    activityname: string,
+    activitystr: string,
+    url: string,
+    popupname: string,
+    timestart: number,
+    coursename: string,
+};
+
 const emailHTML = (courseName: string, popupName: string, countdown: number, result: number) => `
 <div
   style="font-family: Roboto, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: #f9f9f9; max-width: 100vw; margin: 20px; padding: 16px; border-radius: 6px; border: 2px solid #ddd;"
@@ -62,7 +86,7 @@ export async function GET() {
             }
             const upcomings = json.data.upcoming;
 
-            await upcomings.forEach(async (upcoming: any) => {
+            await upcomings.forEach(async (upcoming: Upcoming) => {
                 await db.collection("users").doc(user.username).update({
                     courses: FieldValue.arrayUnion({
                         id: upcoming.id,
@@ -72,14 +96,14 @@ export async function GET() {
                         url: upcoming.url,
                         popupname: upcoming.popupname,
                         timestart: upcoming.timestart,
-                        coursename: upcoming.course.fullname,
+                        coursename: upcoming?.course?.fullname,
                     })
                 });
             })
             
             const courses = user.courses;
             console.log("Đang xem course của :", user.name);
-            await courses.forEach( async (course: any) => {
+            await courses.forEach( async (course: Course) => {
                 const date = new Date().getTime() / 1000;
                 const result = (course.timestart - date) / 3600;
                 const coursedisplay = course.coursename?.split(" - ")[1] || "";

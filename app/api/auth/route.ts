@@ -3,16 +3,28 @@ import {db} from "@/app/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
 import { FieldValue } from "firebase-admin/firestore";
 
+type Upcoming = {
+  id: string;
+  name?: string;
+  activityname?: string;
+  activitystr?: string;
+  url?: string;
+  popupname?: string;
+  timestart?: number | string;
+  course?: {
+    fullname?: string;
+  } | null;
+};
+
+
 export async function POST(req: Request) {
 
     const { username, password, recaptchaToken } = await req.json();
-    const cheerio = require('cheerio');
 
   // --- BƯỚC 1: XÁC THỰC RECAPTCHA VỚI GOOGLE ---
   // Toàn bộ logic xác thực reCAPTCHA của bạn ở đây...
 
     const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY; 
-    const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`;
 
     try {
         const recaptchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
@@ -91,7 +103,7 @@ export async function POST(req: Request) {
             courses: [],
         });
 
-        upcomings.forEach(async (upcoming: any) => {
+        upcomings.forEach(async (upcoming: Upcoming) => {
             await db.collection("users").doc(profileData.body.maSinhVien).update({
                 courses: FieldValue.arrayUnion({
                     id: upcoming.id,
@@ -101,7 +113,7 @@ export async function POST(req: Request) {
                     url: upcoming.url,
                     popupname: upcoming.popupname,
                     timestart: upcoming.timestart,
-                    coursename: upcoming.course.fullname,
+                    coursename: upcoming?.course?.fullname,
                 })
             });
         })
