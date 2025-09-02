@@ -1,7 +1,6 @@
 // lib/moodle.ts
 import * as cheerio from "cheerio";
-import dayjs from "dayjs";
-import { fetch as undiciFetch } from "undici";
+import { fetch as undiciFetch, Dispatcher } from "undici";
 import { CookieJar as ToughCookieJar } from "tough-cookie";
 import { CookieAgent } from "http-cookie-agent/undici";
 
@@ -11,17 +10,24 @@ import { CookieAgent } from "http-cookie-agent/undici";
  * - uses http-cookie-agent/undici CookieAgent as the undici dispatcher so cookies are handled automatically
  * - still follows redirects MANUALLY (redirect: "manual") so we capture Set-Cookie on intermediate 3xx responses
  *
- * Note: some undici/DOM type differences exist; to avoid TS mismatch we treat responses as `any` in a few places.
+ * To avoid unsafe `any`, we declare small lightweight interfaces for headers/response shapes we access.
  */
 
 const BASE = process.env.MOODLE_BASE || "https://courses.ut.edu.vn";
-const WS_TOKEN = process.env.MOODLE_WEBSERVICE_TOKEN || "";
 
-function parseSetCookieNameValue(setCookie: string) {
-  const m = setCookie.match(/^([^=;]+)=([^;]*)/);
-  if (!m) return null;
-  return { name: m[1].trim(), value: m[2].trim() };
-}
+/* ---------------------- small helper types ---------------------- */
+
+type HeadersLike = {
+  // undici may expose raw() via internal symbol; when available it returns a record of arrays
+  raw?: () => Record<string, string[]>;
+  get(name: string): string | null;
+};
+
+type FetchResponse = Response & {
+  headers: HeadersLike;
+  status: number;
+  text(): Promise<string>;
+};
 
 /* ---------------------- cookie jar + agent factory ---------------------- */
 
@@ -40,10 +46,12 @@ function createJarAndAgent() {
 
 /* ---------------------- helper to collect set-cookie and store into tough-cookie jar ---------------------- */
 
-async function collectSetCookieFromResAny(res: any, resUrl: string, jar: ToughCookieJar) {
+async function collectSetCookieFromResAny(res: FetchResponse, resUrl: string, jar: ToughCookieJar) {
   // Try raw() if available (undici headers sometimes expose raw() via Symbol)
   try {
-    const rawHeaders = (res.headers as any).raw?.();
+    // cast through unknown to our HeadersLike to avoid using `any`
+    const headersLike = res.headers as unknown as HeadersLike;
+    const rawHeaders = headersLike.raw?.();
     if (rawHeaders && Array.isArray(rawHeaders["set-cookie"])) {
       const cookies = rawHeaders["set-cookie"] as string[];
       for (const c of cookies) {
@@ -51,29 +59,26 @@ async function collectSetCookieFromResAny(res: any, resUrl: string, jar: ToughCo
         try {
           // setCookie accepts cookie-string and a current URL to resolve domain/path attributes
           // tough-cookie v4+ returns a Promise
-          // @ts-ignore - keep compatibility across tough-cookie versions
           await jar.setCookie(c, resUrl);
-        } catch (_e) {
+        } catch (err: unknown) {
           // fallback: parse name/value into our own map if setCookie fails
+          console.error(err);
         }
       }
       console.log("set-cookie (raw array):", cookies);
       return;
     }
-  } catch (_e) {
-    // ignore and continue fallback
+  } catch (err: unknown) {
+    // ignore and continue fallback (but log)
+    console.error(err);
   }
 
-  const sc = res.headers.get ? res.headers.get("set-cookie") : null;
+  const sc = typeof (res.headers.get) === "function" ? res.headers.get("set-cookie") : null;
   if (sc) {
-    // If multiple cookies are concatenated, split conservatively by ', ' might break cookie values,
-    // but many servers send multiple set-cookie as separate headers; raw() above handled that.
-    // Here just try to set the single header string.
     try {
-      // @ts-ignore
       await jar.setCookie(sc, resUrl);
-    } catch (_e) {
-      // ignore
+    } catch (err: unknown) {
+      console.error(err);
     }
     console.log("set-cookie (single):", sc);
   }
@@ -81,11 +86,11 @@ async function collectSetCookieFromResAny(res: any, resUrl: string, jar: ToughCo
 
 /* ---------------------- fetchWithJar: manual redirect + cookie handling ---------------------- */
 
-async function fetchWithJar(url: string, opts: RequestInit = {}, jar: ToughCookieJar, agent: any) {
+async function fetchWithJar(url: string, opts: RequestInit = {}, jar: ToughCookieJar, agent: Dispatcher): Promise<FetchResponse> {
   const baseHeaders: Record<string, string> = opts.headers ? { ...(opts.headers as Record<string, string>) } : {};
   let currentUrl = url;
   let method = opts.method ?? "GET";
-  let body: any = opts.body;
+  let body: unknown = typeof opts.body === "undefined" ? undefined : opts.body;
   const maxRedirects = 10;
 
   for (let i = 0; i < maxRedirects; i++) {
@@ -93,10 +98,10 @@ async function fetchWithJar(url: string, opts: RequestInit = {}, jar: ToughCooki
     let cookieHeader = "";
     try {
       // tough-cookie jar.getCookieString(url) returns Promise<string>
-      // @ts-ignore - some versions return callback-style; ensure Promise API by wrapping if needed
       cookieHeader = (await jar.getCookieString(currentUrl)) || "";
-    } catch (e) {
+    } catch (err: unknown) {
       cookieHeader = "";
+      console.error(err);
     }
 
     const headersForRequest: Record<string, string> = { ...baseHeaders };
@@ -105,15 +110,14 @@ async function fetchWithJar(url: string, opts: RequestInit = {}, jar: ToughCooki
     console.log(">>> jar cookie header (will be sent if non-empty):", cookieHeader);
 
     // undici fetch with our CookieAgent as dispatcher; use redirect: "manual"
-    const res: any = await undiciFetch(currentUrl, {
-      method,
-      body,
-      headers: headersForRequest,
-      // pass the agent/dispatcher so cookies are handled by http-cookie-agent as well
-      // Type of agent is Dispatcher; to keep TS happy we type agent as any
-      dispatcher: agent,
-      redirect: "manual"
-    });
+  const res = await undiciFetch(currentUrl, {
+    method,
+    // cast at the call site to undici's BodyInit type to satisfy undici's overload
+    body: (body as unknown) as import("undici/types/fetch").BodyInit,
+    headers: headersForRequest,
+    dispatcher: agent,
+    redirect: "manual"
+  }) as unknown as FetchResponse;
 
     // collect set-cookie from this response and add to tough-cookie jar using currentUrl
     await collectSetCookieFromResAny(res, currentUrl, jar);
@@ -165,7 +169,7 @@ function extractSesskey(html: string): string | null {
 
 /* ---------------------- RPC / main flow using fetchWithJar ---------------------- */
 
-async function callUpcomingViewRPC(jar: ToughCookieJar, agent: any, sesskey: string, { courseId = "0", categoryId = "0" } = {}) {
+async function callUpcomingViewRPC(jar: ToughCookieJar, agent: Dispatcher, sesskey: string, { courseId = "0", categoryId = "0" } = {}) {
   const rpcUrl = `${BASE}/lib/ajax/service.php?sesskey=${encodeURIComponent(sesskey || "")}&info=core_calendar_get_calendar_upcoming_view`;
   const rpcBody = [{
     index: 0,
@@ -176,15 +180,15 @@ async function callUpcomingViewRPC(jar: ToughCookieJar, agent: any, sesskey: str
   // For debugging: show cookies known to tough-cookie (best-effort)
   let cookieString = "";
   try {
-    // @ts-ignore
     cookieString = await jar.getCookieString(rpcUrl);
-  } catch (_e) {
+  } catch (err: unknown) {
     cookieString = "";
+    console.error(err);
   }
   console.log("Cookie header for RPC (computed):", cookieString);
   console.log("Jar raw (best-effort):", "(cannot sync show internal tough-cookie store easily)");
 
-  const r: any = await fetchWithJar(rpcUrl, {
+  const r = await fetchWithJar(rpcUrl, {
     method: "POST",
     body: JSON.stringify(rpcBody),
     headers: {
@@ -197,18 +201,44 @@ async function callUpcomingViewRPC(jar: ToughCookieJar, agent: any, sesskey: str
   const text = await r.text();
 
   try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    const parsed: unknown = JSON.parse(text);
+
+    // helper guard
+    const isObject = (v: unknown): v is Record<string, unknown> =>
+      typeof v === "object" && v !== null;
+
+    if (Array.isArray(parsed) && parsed.length > 0 && isObject(parsed[0])) {
       const p0 = parsed[0];
-      if (p0.error === false && p0.data && Array.isArray(p0.data.events)) {
-        return p0.data.events;
+
+      // p0.error === false (note: p0.error may be undefined or any type)
+      if (p0.error === false && isObject(p0.data)) {
+        const data = p0.data;
+        // events is expected to be an array
+        if (Array.isArray(data.events)) {
+          // events chắc chắn là mảng; trả về dưới dạng unknown[] (không dùng `any`)
+          return data.events as unknown[];
+        }
+        // upcoming có thể ở dạng bất kỳ (object, array, string...), trả trực tiếp nếu tồn tại
+        if (typeof data.upcoming !== "undefined") {
+          return data.upcoming;
+        }
       }
-      if (p0.data && p0.data.upcoming) return p0.data.upcoming;
+
+      // Nếu không thỏa điều kiện trên, trả về p0 nguyên vẹn (object)
       return p0;
     }
+
+    // Nếu parsed không phải mảng hoặc rỗng, trả về parsed (unknown)
     return parsed;
-  } catch (e: any) {
-    throw new Error("Failed parse upcoming_view RPC JSON: " + e.message + " (raw snippet: " + text.slice(0, 300) + ")");
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      "Failed parse upcoming_view RPC JSON: " +
+        msg +
+        " (raw snippet: " +
+        text.slice(0, 300) +
+        ")"
+    );
   }
 }
 
@@ -218,7 +248,7 @@ export async function loginAndFetch(username: string, password: string, { course
   const { jar, agent } = createJarAndAgent();
 
   // 1) GET login page
-  const loginPageRes: any = await fetchWithJar(`${BASE}/login/index.php`, { method: "GET" }, jar, agent);
+  const loginPageRes = await fetchWithJar(`${BASE}/login/index.php`, { method: "GET" }, jar, agent);
   const loginPageHtml = await loginPageRes.text();
   const loginToken = extractLoginToken(loginPageHtml);
 
@@ -230,7 +260,7 @@ export async function loginAndFetch(username: string, password: string, { course
 
   console.log("POST__________:", params);
 
-  const postResp: any = await fetchWithJar(`${BASE}/login/index.php`, {
+  const postResp = await fetchWithJar(`${BASE}/login/index.php`, {
     method: "POST",
     body: params.toString(),
     headers: {
@@ -245,7 +275,7 @@ export async function loginAndFetch(username: string, password: string, { course
   // 3) sesskey extraction (try post-login HTML, else /my/)
   let sesskey = extractSesskey(postHtml);
   if (!sesskey) {
-    const dash: any = await fetchWithJar(`${BASE}/my/`, { method: "GET" }, jar, agent);
+    const dash = await fetchWithJar(`${BASE}/my/`, { method: "GET" }, jar, agent);
     const dashHtml = await dash.text();
     sesskey = extractSesskey(dashHtml);
   }
@@ -255,20 +285,21 @@ export async function loginAndFetch(username: string, password: string, { course
   }
   console.log("sesskey:", sesskey);
 
-  let upcoming = null;
+  let upcoming: unknown = null;
   try {
     upcoming = await callUpcomingViewRPC(jar, agent, sesskey, { courseId, categoryId });
-  } catch (err: any) {
-    upcoming = { error: "Failed fetching upcoming view: " + String(err.message) };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    upcoming = { error: "Failed fetching upcoming view: " + msg };
   }
 
   // best-effort: get cookies as string for debug
   let cookiesForReturn = "";
   try {
-    // @ts-ignore
     cookiesForReturn = await jar.getCookieString(BASE);
-  } catch (_e) {
+  } catch (err: unknown) {
     cookiesForReturn = "";
+    console.error(err);
   }
 
   return {
