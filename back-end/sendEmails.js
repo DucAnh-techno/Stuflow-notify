@@ -1,7 +1,6 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
 import { FieldValue } from "firebase-admin/firestore";
-import { NextResponse } from "next/server";
 
 /**
  * @typedef {Object} Upcoming
@@ -88,10 +87,7 @@ export async function GET() {
 
         if (!json || !json.data) {
           console.error("API không trả về dữ liệu hợp lệ:", json);
-          return NextResponse.json(
-            { error: "Đã có lỗi xảy ra" },
-            { status: 500 }
-          );
+          return;
         }
         const upcomings = json.data.upcoming;
 
@@ -157,6 +153,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "Có lỗi xảy ra" }, { status: 500 });
+    return;
   }
 }
