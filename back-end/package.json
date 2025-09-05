@@ -1,4 +1,10 @@
 {
+  "name": "back-end",
+  "version": "1.0.0",
+  "type": "module",      
+  "scripts": {
+    "notify": "node sendEmails.js"
+  },
   "devDependencies": {
     "@types/node": "^24.3.1"
   },
