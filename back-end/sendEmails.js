@@ -1,6 +1,5 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
-import { FieldValue } from "firebase-admin/firestore";
 
 /**
  * @typedef {Object} Upcoming
@@ -96,7 +95,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
             .collection("users")
             .doc(user.username)
             .update({
-              courses: FieldValue.arrayUnion({
+              courses: upcomings.map((upcoming) => ({
                 id: upcoming.id,
                 name: upcoming.name,
                 activityname: upcoming.activityname,
@@ -105,7 +104,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
                 popupname: upcoming.popupname,
                 timestart: upcoming.timestart,
                 coursename: upcoming?.course?.fullname,
-              }),
+              })),
             });
         });
 
