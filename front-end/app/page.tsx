@@ -32,7 +32,7 @@ export default function LoginPage() {
             <div className="flex justify-center w-full">
               <div className="w-10/12 border rounded-lg lg:rounded-xl p-5 lg:px-[5rem] lg:py-10 ">
                 <div className={`${museoModerno.className} text-justify lg:min-h-[60vh] space-y-2 lg:text-xl`}>
-                  <h2 className="text-red-500 pb-5 lg:pb-8 font-bold text-2xl lg:text-[2rem] text-center">Thân tình</h2>
+                  <h2 className="text-red-500 pb-5 font-bold text-2xl lg:text-[2rem] text-center">Thân tình</h2>
                   <div className='lg:min-h-[50vh] grid lg:'>
                     <p>Đây là trang web mà tớ tự mày mò và phát triển để đáp ứng nhu cầu thông báo lịch học/bài tập E-Learning của tớ thôi, hì hì! </p>
                     <p>Nếu cậu đang ở đây thì chắc chắn cậu cũng hay quên và mất kha khá bài E-Learing rồi ha 😆. Tớ sẽ rất vui nếu trang web này có ích với cậu á.</p>
