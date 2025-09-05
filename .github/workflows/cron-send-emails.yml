@@ -32,16 +32,16 @@ jobs:
           chmod 600 ${{ github.workspace }}/service-account.json
         shell: bash
 
-      - name: Install backend dependencies
+      - name: Install back-end dependencies
         run: |
-          cd backend
+          cd back-end
           npm ci
         working-directory: ./back-end
         shell: bash
 
       - name: Run sendEmails script
         run: |
-          cd backend
+          cd back-end
           node sendEmails.js
         working-directory: ./back-end
         env:
