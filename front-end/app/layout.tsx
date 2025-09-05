@@ -14,15 +14,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/front-end/public/favicon.ico' },
-      { url: '/front-end/public/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/front-end/public/favicon-96x96.png', type: 'image/png' },
       { url: '/front-end/public/favicon.svg', type: 'image/svg+xml' }
     ],
     apple: [
-      { url: '/front-end/public/apple-touch-icon.png', sizes: '180x180' }
-    ],
-    other: [
-      { url: '/front-end/public/web-app-manifest-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/front-end/public/web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png' }
+      { url: '/front-end/public/apple-touch-icon.png'}
     ],
     shortcut: '/front-end/public/favicon.ico' // cho các trình duyệt cũ
   },
