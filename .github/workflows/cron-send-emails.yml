@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TZ: Asia/Ho_Chi_Minh
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
