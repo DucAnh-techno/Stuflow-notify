@@ -58,7 +58,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
 </div>
 `;
 
-export async function GET() {
+(async () => {
   try {
     const usersSnapshot = await db.collection("users").get();
     const users = usersSnapshot.docs.map((doc) => doc.data());
@@ -155,4 +155,4 @@ export async function GET() {
     console.error(error);
     return;
   }
-}
+}) ();

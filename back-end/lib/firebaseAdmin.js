@@ -1,4 +1,5 @@
 import admin from "firebase-admin";
+import 'dotenv/config';
 
 if (!admin.apps.length) {
   if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
