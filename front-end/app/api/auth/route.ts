@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
         const profileData = await pro_res.json();
 
-        const res = await fetch("http://localhost:3000/api/course", {
+        const res = await fetch("https://stuflow-notify.vercel.app/api/course", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: username, password: password, courseId: "1", categoryId: "0" })

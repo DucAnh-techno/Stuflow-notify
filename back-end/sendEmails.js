@@ -73,7 +73,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
 
     await Promise.all(
       users.map(async (user) => {
-        const res = await fetch("http://localhost:3000/api/course", {
+        const res = await fetch("https://stuflow-notify.vercel.app/api/course", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
