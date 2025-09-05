@@ -35,8 +35,7 @@ jobs:
       - name: Install back-end dependencies
         run: |
           cd back-end
-          npm ci
-        shell: bash
+          npm install
 
       - name: Run sendEmails script
         run: |
