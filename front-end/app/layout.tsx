@@ -13,14 +13,14 @@ export const metadata: Metadata = {
   description: "Thông báo lịch học E-Learning",
   icons: {
     icon: [
-      { url: '/front-end/public/favicon.ico' },
+      { url: '/front-end/favicon.ico' },
       { url: '/front-end/public/favicon-96x96.png', type: 'image/png' },
       { url: '/front-end/public/favicon.svg', type: 'image/svg+xml' }
     ],
     apple: [
       { url: '/front-end/public/apple-touch-icon.png'}
     ],
-    shortcut: '/front-end/public/favicon.ico' // cho các trình duyệt cũ
+    shortcut: '/front-end/favicon.ico' // cho các trình duyệt cũ
   },
   manifest: '/front-end/public/site.webmanifest',
 }
