@@ -1,0 +1,54 @@
+name: Cron — Send Emails (Hourly)
+
+# chạy định kỳ + có thể trigger thủ công
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour at minute 0 (UTC). See note về timezone dưới.
+  workflow_dispatch: {}
+
+concurrency:
+  group: send-emails
+  cancel-in-progress: true  # nếu một run cũ còn chạy thì hủy run cũ để tránh trùng lặp
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Ho_Chi_Minh
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Write Firebase service account (raw JSON)
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        run: |
+          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > ${{ github.workspace }}/service-account.json
+          chmod 600 ${{ github.workspace }}/service-account.json
+        shell: bash
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+        shell: bash
+
+      - name: Run sendEmails script
+        run: |
+          cd backend
+          node sendEmails.js
+        env:
+          # tell Firebase Admin SDK where to find credentials
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service-account.json
+          # Firebase config
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          # SMTP (nodemailer)
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          # misc
+          NODE_ENV: production
