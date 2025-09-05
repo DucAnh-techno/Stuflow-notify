@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: backend/package-lock.json 
 
       - name: Write Firebase service account (raw JSON)
         if: env.FIREBASE_SERVICE_ACCOUNT != ''
@@ -36,12 +37,14 @@ jobs:
         run: |
           cd backend
           npm ci
+        working-directory: ./backend
         shell: bash
 
       - name: Run sendEmails script
         run: |
           cd backend
           node sendEmails.js
+        working-directory: ./backend
         env:
           # tell Firebase Admin SDK where to find credentials
           GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/service-account.json
