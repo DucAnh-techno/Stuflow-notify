@@ -88,6 +88,14 @@ const emailHTML = (courseName, popupName, countdown, result) => `
           console.error("API không trả về dữ liệu hợp lệ:", json);
           return;
         }
+
+        await transporter.sendMail({
+          from: "Stuflow",
+          to: user.email,
+          subject: `Email test`,
+          text: "Email này để test hệ thống hoạt động có trơn tru không.",
+        });
+
         const upcomings = json.data.upcoming;
 
         await upcomings.forEach(async (upcoming) => {
@@ -144,6 +152,8 @@ const emailHTML = (courseName, popupName, countdown, result) => `
         });
       })
     );
+
+
 
     return new Response("<h1>Hello from API</h1>", {
       headers: {
