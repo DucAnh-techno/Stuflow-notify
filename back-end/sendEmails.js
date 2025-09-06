@@ -89,13 +89,6 @@ const emailHTML = (courseName, popupName, countdown, result) => `
           return;
         }
 
-        await transporter.sendMail({
-          from: `"Stuflow" ${process.env.EMAIL_USER}`,
-          to: user.email,
-          subject: `Email test`,
-          text: "Email này để test hệ thống hoạt động có trơn tru không.",
-        });
-
         const upcomings = json.data.upcoming;
 
         await upcomings.forEach(async (upcoming) => {
