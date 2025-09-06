@@ -1,5 +1,6 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
+import moment from 'moment';
 
 /**
  * @typedef {Object} Upcoming
@@ -88,6 +89,16 @@ const emailHTML = (courseName, popupName, countdown, result) => `
           console.error("API không trả về dữ liệu hợp lệ:", json);
           return;
         }
+
+        const clock = moment().format("HH:mm:ss");
+        const day = moment().format("DD/MM/YYYY");
+
+        await transporter.sendMail({
+          from: `"Stuflow" <${process.env.EMAIL_USER}>`,
+          to: user.email,
+          subject: `Email chạy thử`,
+          text: `Hiện tại là date: ${day} | ${clock} times.`,
+        });
 
         const upcomings = json.data.upcoming;
 
