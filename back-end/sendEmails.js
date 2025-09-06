@@ -90,7 +90,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
         }
 
         await transporter.sendMail({
-          from: "Stuflow",
+          from: `"Stuflow" ${process.env.EMAIL_USER}`,
           to: user.email,
           subject: `Email test`,
           text: "Email này để test hệ thống hoạt động có trơn tru không.",

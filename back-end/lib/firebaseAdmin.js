@@ -8,6 +8,8 @@ if (!admin.apps.length) {
 
   const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n");
 
+  console.log(privateKey.split("\n").length);
+
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
