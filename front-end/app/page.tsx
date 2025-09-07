@@ -43,6 +43,7 @@ export default function LoginPage() {
                         <li>Tớ làm trang web này chưa xin phép nhà trường đâu, nên nhờ cậu giúp tớ giữ &#39;<span className="text-gray-700">bí mật</span>&#39; nhé 😥</li>
                       </ul>
                       <p><br></br>Đồng ý thì bấm nè → <button type="button" onClick={handleRouter} className="px-2 py-1 rounded hover:bg-gray-400 font-bold bg-gray-300 active:opacity-75 active:bg-gray-400">Login</button></p>
+                      <p className='font-[300] text-center pt-4 text-sm'>Đăng nhập bằng tài khoản sinh viên nhé!</p>
                     </div>
                   </div>
                 </div>
