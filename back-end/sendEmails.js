@@ -1,6 +1,5 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
-import moment from 'moment';
 
 /**
  * @typedef {Object} Upcoming
@@ -90,16 +89,6 @@ const emailHTML = (courseName, popupName, countdown, result) => `
           return;
         }
 
-        const clock = moment().format("HH:mm:ss");
-        const day = moment().format("DD/MM/YYYY");
-
-        await transporter.sendMail({
-          from: `"Stuflow" <${process.env.EMAIL_USER}>`,
-          to: user.email,
-          subject: `Email chạy thử`,
-          text: `Hiện tại là date: ${day} | ${clock} times.`,
-        });
-
         const upcomings = json.data.upcoming;
 
         await upcomings.forEach(async (upcoming) => {
@@ -124,14 +113,14 @@ const emailHTML = (courseName, popupName, countdown, result) => `
         console.log("Đang xem course của :", user.name);
         await courses.forEach(async (course) => {
           const date = new Date().getTime() / 1000;
-          const result = (course.timestart - date) / 3600;
+          const result = (course.timestart - date) ;
           const coursedisplay = course.coursename?.split(" - ")[1] || "";
           const popupnamedisplay = course.popupname?.split(":")[1] || "";
 
           if (
-            (result > 0 && result < 24) ||
-            (result > 0 && result < 1.1) ||
-            (result > 5 && result < 6)
+            (result > 0 && result < 86400) ||
+            (result > 0 && result < 4500) ||
+            (result > 18000 && result < 22000)
           ) {
             // Giờ
             const countdown = Math.floor(result / (60 * 60));
@@ -142,7 +131,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
               html: emailHTML(coursedisplay, popupnamedisplay, countdown, result),
             });
             console.log("Đã gửi email tới ", user.name);
-          } else if (result < 72 && result > 71) {
+          } else if (result < 259200 && result > 255600) {
             // Ngày
             const countdown = Math.floor(result / (60 * 60 * 24));
             await transporter.sendMail({

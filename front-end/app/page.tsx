@@ -28,7 +28,7 @@ export default function LoginPage() {
       <div className="relactive content-center">
         <div className="absolute">
           <div className="flex-col w-screen justify-center">
-            <h1 className={`${pacifico.className} w-full text-center text-5xl mt-20 lg:mt-8 mb-10`}>Stuflow</h1>
+            <h1 className={`${pacifico.className} w-full text-center text-5xl mt-8 mb-10`}>Stuflow</h1>
             <div className="flex justify-center w-full">
               <div className="w-10/12 border rounded-lg lg:rounded-xl p-5 lg:p-2 mb-10 lg:px-[5rem] lg:py-8 ">
                 <div className={`${museoModerno.className} text-justify lg:min-h-[60vh] space-y-2 lg:text-xl`}>
