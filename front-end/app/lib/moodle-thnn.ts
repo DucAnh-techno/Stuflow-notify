@@ -13,7 +13,7 @@ import { CookieAgent } from "http-cookie-agent/undici";
  * To avoid unsafe `any`, we declare small lightweight interfaces for headers/response shapes we access.
  */
 
-const BASE = process.env.MOODLE_BASE || "https://courses.ut.edu.vn";
+const BASE = process.env.MOODLE_THNN || "https://thnn.ut.edu.vn";
 
 /* ---------------------- small helper types ---------------------- */
 

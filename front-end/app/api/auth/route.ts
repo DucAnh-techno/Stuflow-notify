@@ -1,21 +1,6 @@
 // file /app/api/auth/route.ts
 import {db} from "@/app/lib/firebaseAdmin";
 import { NextResponse } from "next/server";
-import { FieldValue } from "firebase-admin/firestore";
-
-type Upcoming = {
-  id: string;
-  name?: string;
-  activityname?: string;
-  activitystr?: string;
-  url?: string;
-  popupname?: string;
-  timestart?: number | string;
-  course?: {
-    fullname?: string;
-  } | null;
-};
-
 
 export async function POST(req: Request) {
 
@@ -77,22 +62,6 @@ export async function POST(req: Request) {
 
         const profileData = await pro_res.json();
 
-        const res = await fetch("https://stuflow-notify.vercel.app/api/course", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: username, password: password, courseId: "1", categoryId: "0" })
-        });
-        const json = await res.json();
-
-        if (!json || !json.data) {
-        console.error("API không trả về dữ liệu hợp lệ:", json);
-        return NextResponse.json({ error: "API error" }, { status: 500 });
-        }
-
-        const upcomings = json.data.upcoming;
-
-        console.log("CARLENDAR_____________________________________________________________________________:", json.data || []);
-
         const doc = await db.collection("users").doc(profileData.body.maSinhVien).set({
             name: profileData.body.hoDem + " " + profileData.body.ten,
             email: profileData.body.email,
@@ -102,26 +71,9 @@ export async function POST(req: Request) {
             password: password,
             courses: [],
         });
-
-        upcomings.forEach(async (upcoming: Upcoming) => {
-            await db.collection("users").doc(profileData.body.maSinhVien).update({
-                courses: FieldValue.arrayUnion({
-                    id: upcoming.id,
-                    name: upcoming.name,
-                    activityname: upcoming.activityname,
-                    activitystr: upcoming.activitystr,
-                    url: upcoming.url,
-                    popupname: upcoming.popupname,
-                    timestart: upcoming.timestart,
-                    coursename: upcoming?.course?.fullname,
-                })
-            });
-        })
         
         console.log("Lưu dữ liệu: ", doc);
-
         return NextResponse.json({ success: true, profileData});
-
 
     } catch (apiCallError) {
         console.error("Lỗi khi gọi API đăng nhập của Portal:", apiCallError);

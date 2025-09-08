@@ -1,5 +1,7 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
+import { FieldValue } from "firebase-admin/firestore";
+
 
 /**
  * @typedef {Object} Upcoming
@@ -25,12 +27,12 @@ import nodemailer from "nodemailer";
  * @property {string} coursename
  */
 
-const emailHTML = (courseName, popupName, countdown, result) => `
+const emailHTML = (courseName, popupName, countdown, result, url) => `
 <div
   style="font-family: Roboto, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; background-color: #f9f9f9; max-width: 100vw; margin: 20px; padding: 16px; border-radius: 6px; border: 2px solid #ddd;"
 >
   <h1 style=" color: #e74c3c; font-size: 1.5rem; line-height: 2rem; font-weight: 700; margin-bottom: 10px; text-align: center;">
-    ⚠ GẤP GẤP GẤP!!! <br> 
+    ⚠ ${result > 86400 ? "CHÚ Ý!?" : " GẤP GẤP GẤP!!!"} <br> 
     ${courseName}
   </h1>
 
@@ -40,14 +42,13 @@ const emailHTML = (courseName, popupName, countdown, result) => `
 
   <p style="font-size: 1.125rem; line-height: 1.75rem;">
     Thời gian còn lại
-    <span style="color: #2980b9; font-weight: 700;">${countdown} ${
-  result > 86400 ? "ngày" : " giờ"
-}</span>.
+    <span style="color: #2980b9; font-weight: 700;">${countdown} ${result > 86400 ? "ngày" : " giờ"}</span>.
   </p>
 
   <p style="font-size: 1.125rem; line-height: 1.75rem;">
     Bạn chú ý thời gian để đừng bỏ lỡ bài tập của mình nhé!
   </p>
+  <a href="${url}">${url}<a/>
 
   <hr style="border: 0; border-top: 1px solid #ddd; margin-top: 20px;">
 
@@ -72,42 +73,59 @@ const emailHTML = (courseName, popupName, countdown, result) => `
 
     await Promise.all(
       users.map(async (user) => {
-        const res = await fetch("https://stuflow-notify.vercel.app/api/course", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: user.username,
-            password: user.password,
-            courseId: "1",
-            categoryId: "0",
-          }),
+        const res_courses = await fetch("https://stuflow-notify.vercel.app/api/course", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: user.username, password: user.password, courseId: "1", categoryId: "0" })
         });
-        const json = await res.json();
+        const res_thnn = await fetch("https://stuflow-notify.vercel.app/api/thnn", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: user.username, password: user.password, courseId: "1", categoryId: "0" })
+        });
+        const json_courses = await res_courses.json();
+        const json_thnn = await res_thnn.json();
 
-        if (!json || !json.data) {
-          console.error("API không trả về dữ liệu hợp lệ:", json);
-          return;
+        if (!json_courses || !json_thnn) {
+            console.error("API không trả về dữ liệu hợp lệ:", json_thnn, res_courses);
+            return NextResponse.json({ error: "API error" }, { status: 500 });
         }
 
-        const upcomings = json.data.upcoming;
+        const upcomings_C = json_courses.data.upcoming;
+        const upcomings_T = json_thnn.data.upcoming;
 
-        await upcomings.forEach(async (upcoming) => {
-          await db
-            .collection("users")
-            .doc(user.username)
-            .update({
-              courses: upcomings.map((upcoming) => ({
-                id: upcoming.id,
-                name: upcoming.name,
-                activityname: upcoming.activityname,
-                activitystr: upcoming.activitystr,
-                url: upcoming.url,
-                popupname: upcoming.popupname,
-                timestart: upcoming.timestart,
-                coursename: upcoming?.course?.fullname,
-              })),
-            });
+        await db.collection("users").doc(user.username).update({
+          courses: []
         });
+
+        for (const upcoming of upcomings_C) {
+          await db.collection("users").doc(user.username).update({
+            courses: FieldValue.arrayUnion({
+              id: upcoming.id,
+              name: upcoming.name,
+              activityname: upcoming.activityname,
+              activitystr: upcoming.activitystr,
+              url: upcoming.url,
+              popupname: upcoming.popupname,
+              timestart: upcoming.timestart,
+              coursename: upcoming?.course?.fullname,
+            }),
+          });
+        }
+        for (const upcoming of upcomings_T) {
+          await db.collection("users").doc(user.username).update({
+            courses: FieldValue.arrayUnion({
+              id: upcoming.id,
+              name: upcoming.name,
+              activityname: upcoming.activityname,
+              activitystr: upcoming.activitystr,
+              url: upcoming.url,
+              popupname: upcoming.popupname,
+              timestart: upcoming.timestart,
+              coursename: upcoming?.course?.fullname,
+            }),
+          });
+        }
 
         const courses = user.courses;
         console.log("Đang xem course của :", user.name);
@@ -116,9 +134,10 @@ const emailHTML = (courseName, popupName, countdown, result) => `
           const result = (course.timestart - date) ;
           const coursedisplay = course.coursename?.split(" - ")[1] || "";
           const popupnamedisplay = course.popupname?.split(":")[1] || "";
+          const url = course.url;
 
           if (
-            (result > 0 && result < 86400) ||
+            (result > 84000 && result < 86400) ||
             (result > 0 && result < 4500) ||
             (result > 18000 && result < 22000)
           ) {
@@ -128,7 +147,7 @@ const emailHTML = (courseName, popupName, countdown, result) => `
               from: `"Stuflow" <${process.env.EMAIL_USER}>`,
               to: user.email,
               subject: `⚠ GẤP❗️ còn ${countdown} giờ ${coursedisplay} sẽ "${course.activitystr}"`,
-              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result),
+              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
             });
             console.log("Đã gửi email tới ", user.name);
           } else if (result < 259200 && result > 255600) {
@@ -138,7 +157,16 @@ const emailHTML = (courseName, popupName, countdown, result) => `
               from: `"Stuflow" <${process.env.EMAIL_USER}>`,
               to: user.email,
               subject: `⚠ Chú ý ! còn ${countdown} ngày ${coursedisplay} sẽ "${course.activitystr}"`,
-              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result),
+              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
+            });
+            console.log("Đã gửi email tới ", user.name);
+          } else {
+            const countdown = Math.floor(result / (60 * 60 * 24));
+            await transporter.sendMail({
+              from: `"Stuflow" <${process.env.EMAIL_USER}>`,
+              to: user.email,
+              subject: `⚠ Chú ý ! còn ${countdown} ngày ${coursedisplay} sẽ "${course.activitystr}"`,
+              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
             });
             console.log("Đã gửi email tới ", user.name);
           }

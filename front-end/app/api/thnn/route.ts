@@ -1,6 +1,6 @@
 // app/api/fetch-timetable/route.js
 import { NextResponse } from "next/server";
-import { loginAndFetch } from "../../lib/moodle-courses";
+import { loginAndFetch } from "../../lib/moodle-thnn";
 
 export async function POST(request: Request) {
   try {
@@ -10,6 +10,7 @@ export async function POST(request: Request) {
     }
 
     const result = await loginAndFetch(username, password, { courseId, categoryId });
+    console.log(result);
     return NextResponse.json({ ok: true, data: result });
   } catch (err) {
     console.error("API error:", err);
