@@ -127,9 +127,9 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
           });
         }
 
-        const courses = user.courses;
+        const allUpcomings = [...upcomings_C, ...upcomings_T];
         console.log("Đang xem course của :", user.name);
-        await courses.forEach(async (course) => {
+        for (const course of allUpcomings) {
           const date = new Date().getTime() / 1000;
           const result = (course.timestart - date) ;
           const coursedisplay = course.coursename?.split(" - ")[1] || "";
@@ -160,17 +160,8 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
               html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
             });
             console.log("Đã gửi email tới ", user.name);
-          } else {
-            const countdown = Math.floor(result / (60 * 60 * 24));
-            await transporter.sendMail({
-              from: `"Stuflow" <${process.env.EMAIL_USER}>`,
-              to: user.email,
-              subject: `⚠ Chú ý ! còn ${countdown} ngày ${coursedisplay} sẽ "${course.activitystr}"`,
-              html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
-            });
-            console.log("Đã gửi email tới ", user.name);
           }
-        });
+        }
       })
     );
 
