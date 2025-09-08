@@ -11,6 +11,9 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: "Stuflow-notify",
   description: "Thông báo lịch học E-Learning",
+  verification: {
+    google: "SvPwXXUZacvd6DYD-IBmgwNIalm814ouKXTPEHXPl80",
+  },
   icons: {
     icon: [
       { url: '/favicon.ico' },
