@@ -146,7 +146,7 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
             await transporter.sendMail({
               from: `"Stuflow" <${process.env.EMAIL_USER}>`,
               to: user.email,
-              subject: `⚠ GẤP❗️ còn ${countdown} giờ ${coursedisplay} sẽ "${course.activitystr}"`,
+              subject: `⚠ GẤP❗️ còn ${countdown} giờ ${coursedisplay} sẽ "${course.activitystr}" - ${date}`,
               html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
             });
             console.log("Đã gửi email tới ", user.name);
@@ -156,10 +156,10 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
             await transporter.sendMail({
               from: `"Stuflow" <${process.env.EMAIL_USER}>`,
               to: user.email,
-              subject: `⚠ Chú ý ! còn ${countdown} ngày ${coursedisplay} sẽ "${course.activitystr}"`,
+              subject: `⚠ Chú ý ! còn ${countdown} ngày ${coursedisplay} sẽ "${course.activitystr}" - ${date}`,
               html: emailHTML(coursedisplay, popupnamedisplay, countdown, result, url),
             });
-            console.log("Đã gửi email tới ", user.name);
+            console.log("Đã gửi email ngày tới ", user.name);
           }
         }
       })
