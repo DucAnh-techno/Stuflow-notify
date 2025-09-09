@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     if (!recaptchaData.success) {
       console.error("reCAPTCHA validation failed:", recaptchaData["error-codes"]);
       return NextResponse.json(
-        { success: false, error: "Xác minh reCAPTCHA thất bại. Vui lòng thử lại." },
+        { success: false, error: recaptchaRes },
         { status: 400 }
       );
     }
