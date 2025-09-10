@@ -86,13 +86,13 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
         const json_courses = await res_courses.json();
         const json_thnn = await res_thnn.json();
 
-        if (!json_courses || !json_thnn) {
+        if (!json_courses || !json_thnn || !json_courses.data || !json_thnn.data) {
             console.error("API không trả về dữ liệu hợp lệ:", json_thnn, res_courses);
-            return NextResponse.json({ error: "API error" }, { status: 500 });
+            process.exit(1);
         }
 
-        const upcomings_C = json_courses.data.upcoming;
-        const upcomings_T = json_thnn.data.upcoming;
+        const upcomings_C = json_courses?.data?.upcoming;
+        const upcomings_T = json_thnn?.data?.upcoming;
 
         await db.collection("users").doc(user.username).update({
           courses: []
@@ -167,13 +167,10 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
 
 
 
-    return new Response("<h1>Hello from API</h1>", {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
-    });
+    console.log("✅ Hoàn thành gửi email cho tất cả users");
+    process.exit(0);
   } catch (error) {
-    console.error(error);
-    return;
+    console.error("❌ Lỗi:", error);
+    process.exit(1);
   }
 }) ();
