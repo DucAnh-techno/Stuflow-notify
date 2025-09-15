@@ -8,6 +8,7 @@
     "dotenv": "^17.2.2"
   },
   "scripts": {
-    "build": "npm install --prefix front-end && npm run build --prefix front-end"
+    "build": "npm install --prefix front-end && npm run build --prefix front-end",
+    "start": "npm start --prefix front-end"
   }
 }
