@@ -1,4 +1,4 @@
-// app/api/fetch-timetable/route.js
+// app/api/route.js
 import { NextResponse } from "next/server";
 import { loginAndFetch } from "../../lib/moodle-courses";
 

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "notify": "node sendEmails.js"
+    "notify": "node sendEmails.js",
+    "build": "echo 'No build needed for back-end'"
   },
   "devDependencies": {
     "@types/node": "^24.3.1"

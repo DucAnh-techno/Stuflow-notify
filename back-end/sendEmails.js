@@ -87,7 +87,7 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
         const json_thnn = await res_thnn.json();
 
         if (!json_courses || !json_thnn || !json_courses.data || !json_thnn.data) {
-            console.error("API không trả về dữ liệu hợp lệ:", json_thnn, res_courses);
+            console.error("API không trả về dữ liệu hợp lệ:", json_thnn, json_courses);
             process.exit(1);
         }
 
