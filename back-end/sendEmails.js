@@ -93,12 +93,13 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
 
         const upcomings_C = json_courses?.data?.upcoming;
         const upcomings_T = json_thnn?.data?.upcoming;
+        const allUpcomings = [...upcomings_C, ...upcomings_T];
 
         await db.collection("users").doc(user.username).update({
           courses: []
         });
 
-        for (const upcoming of upcomings_C) {
+        for (const upcoming of allUpcomings) {
           await db.collection("users").doc(user.username).update({
             courses: FieldValue.arrayUnion({
               id: upcoming.id,
@@ -112,22 +113,7 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
             }),
           });
         }
-        for (const upcoming of upcomings_T) {
-          await db.collection("users").doc(user.username).update({
-            courses: FieldValue.arrayUnion({
-              id: upcoming.id,
-              name: upcoming.name,
-              activityname: upcoming.activityname,
-              activitystr: upcoming.activitystr,
-              url: upcoming.url,
-              popupname: upcoming.popupname,
-              timestart: upcoming.timestart,
-              coursename: upcoming?.course?.fullname,
-            }),
-          });
-        }
-
-        const allUpcomings = [...upcomings_C, ...upcomings_T];
+        
         console.log("Đang xem course của :", user.name);
         for (const course of allUpcomings) {
           const date = new Date().getTime() / 1000;

@@ -1,24 +1,28 @@
 import { NextResponse } from "next/server";
-import admin, { db } from "../../../../../back-end/lib/firebaseAdmin.js";
+import { db } from "@/app/lib/firebaseAdmin";
 
-export async function GET(req: Request) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader) return NextResponse.json({ error: "Missing token" }, { status: 401 });
-
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    const uid = decoded.uid;
-
-    const portalSession = await db.collection("portalSessions").doc(uid).get();
-
-    return NextResponse.json({
-      ok: true,
-      uid,
-      decoded,
-      portalSession: portalSession.exists ? portalSession.data() : null,
+export async function GET(username: string, password: string, token: string) {
+    // ---B3: Lấy profile 
+    const pro_res = await fetch("https://portal.ut.edu.vn/api/v1/user/getSummaryProfile", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-  } catch {
-    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-  }
+
+    if (!pro_res.ok) {
+      console.error("Error fetching profile:", pro_res.status);
+      return NextResponse.json({ success: false, error: "Không lấy được profile" },{ status: 500 });
+    }
+
+    const profileData = await pro_res.json();
+
+    await db.collection("users").doc(profileData.body.maSinhVien).set({
+      name: profileData.body.hoDem + " " + profileData.body.ten,
+      email: profileData.body.email,
+      number: profileData.body.soDienThoai,
+      birth: profileData.body.ngaySinh2,
+      username,
+      password,
+      courses: [],
+    });
+
+    return NextResponse.json({ ok: true, profileData });  
 }

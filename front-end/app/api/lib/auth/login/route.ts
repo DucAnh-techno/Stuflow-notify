@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import admin,{ db } from "../../../../../../back-end/lib/firebaseAdmin.js";
+import { db } from "@/app/lib/firebaseAdmin";
 
-export async function POST(req: Request) {
+export async function POST(username: string, password: string, recaptcha: string) {
   try {
-    const { username, password, recaptchaToken } = await req.json();
-
-    if (!username || !password || !recaptchaToken) {
+    if (!username || !password || !recaptcha) {
       return NextResponse.json({ error: "Missing" }, { status: 400 });
     }
 
@@ -13,7 +11,7 @@ export async function POST(req: Request) {
     const recaptchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
+      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptcha}`,
     });
     const recaptchaData = await recaptchaRes.json();
     if (!recaptchaData.success) {
@@ -26,7 +24,7 @@ export async function POST(req: Request) {
     // --- B2: Gửi thông tin đăng nhập đến API Portal ---
     const PORTAL_LOGIN_API_ENDPOINT = "https://portal.ut.edu.vn/api/v1/user/login";
     const login_res = await fetch(
-      `${PORTAL_LOGIN_API_ENDPOINT}?g-recaptcha-response=${recaptchaToken}`,
+      `${PORTAL_LOGIN_API_ENDPOINT}?g-recaptcha-response=${recaptcha}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -36,38 +34,14 @@ export async function POST(req: Request) {
 
     if (!login_res.ok) {
       const errorData = await login_res.json().catch(() => ({}));
-      return NextResponse.json(
-        { error: errorData.message || "Thông tin đăng nhập không hợp lệ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: errorData.message || "Thông tin đăng nhập không hợp lệ" },{ status: 401 });
     }
-
     const dataLogin = await login_res.json();
     if (!dataLogin.success) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // --- B3: Tạo hoặc lấy user trong Firebase ---
-    const uid = `portal_${username}`;
-    try {
-      await admin.auth().getUser(uid);
-    } catch {
-      await admin.auth().createUser({ uid });
-    }
-
-    // --- B4: Lưu session Portal vào Firestore ---
-    if (dataLogin.token) {
-      await db.collection("portalSessions").doc(uid).set({
-        cookie: dataLogin.token,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        expiresAt: dataLogin.expiresAt ? new Date(dataLogin.expiresAt) : null,
-      });
-    }
-
-    // --- B5: Tạo Firebase Custom Token ---
-    const customToken = await admin.auth().createCustomToken(uid, { source: "portal" });
-
-    return NextResponse.json({ ok: true, customToken });
+    return NextResponse.json({ ok: true, dataLogin });   
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });

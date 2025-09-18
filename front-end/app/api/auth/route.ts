@@ -53,10 +53,7 @@ export async function POST(req: Request) {
 
     if (!pro_res.ok) {
       console.error("Error fetching profile:", pro_res.status);
-      return NextResponse.json(
-        { success: false, error: "Không lấy được profile" },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: "Không lấy được profile" },{ status: 500 });
     }
 
     const profileData = await pro_res.json();
