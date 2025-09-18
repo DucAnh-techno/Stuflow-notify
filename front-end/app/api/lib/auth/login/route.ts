@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function POST(username: string, password: string, recaptchaToken: string) {
+export async function POST(req: Request) {
   try {
+    const { username, password, recaptchaToken } = await req.json();
     if (!username || !password || !recaptchaToken) {
       return NextResponse.json({ error: "Missing" }, { status: 400 });
     }
