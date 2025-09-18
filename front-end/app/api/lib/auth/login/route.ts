@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { db } from "@/app/lib/firebaseAdmin";
 
 export async function POST(username: string, password: string, recaptcha: string) {
   try {
