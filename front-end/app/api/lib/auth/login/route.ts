@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function POST(username: string, password: string, recaptcha: string) {
+export async function POST(username: string, password: string, recaptchaToken: string) {
   try {
-    if (!username || !password || !recaptcha) {
+    if (!username || !password || !recaptchaToken) {
       return NextResponse.json({ error: "Missing" }, { status: 400 });
     }
 
@@ -10,7 +10,7 @@ export async function POST(username: string, password: string, recaptcha: string
     const recaptchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptcha}`,
+      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
     });
     const recaptchaData = await recaptchaRes.json();
     if (!recaptchaData.success) {
@@ -23,7 +23,7 @@ export async function POST(username: string, password: string, recaptcha: string
     // --- B2: Gửi thông tin đăng nhập đến API Portal ---
     const PORTAL_LOGIN_API_ENDPOINT = "https://portal.ut.edu.vn/api/v1/user/login";
     const login_res = await fetch(
-      `${PORTAL_LOGIN_API_ENDPOINT}?g-recaptcha-response=${recaptcha}`,
+      `${PORTAL_LOGIN_API_ENDPOINT}?g-recaptcha-response=${recaptchaToken}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
