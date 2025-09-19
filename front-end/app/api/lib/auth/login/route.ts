@@ -32,6 +32,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, dataLogin });   
   } catch (err) {
     console.error("Login error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ err: "Server error" }, { status: 500 });
   }
 }
