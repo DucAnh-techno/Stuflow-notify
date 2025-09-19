@@ -7,19 +7,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing" }, { status: 400 });
     }
 
-    // --- B1: Xác thực reCAPTCHA ---
-    const recaptchaRes = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`,
-    });
-    const recaptchaData = await recaptchaRes.json();
-    if (!recaptchaData.success) {
-      return NextResponse.json(
-        { error: "Xác minh reCAPTCHA thất bại" },
-        { status: 400 }
-      );
-    }
+
 
     // --- B2: Gửi thông tin đăng nhập đến API Portal ---
     const PORTAL_LOGIN_API_ENDPOINT = "https://portal.ut.edu.vn/api/v1/user/login";
