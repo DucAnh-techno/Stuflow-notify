@@ -23,6 +23,6 @@ export async function GET(username: string, password: string, token: string) {
       password,
       courses: [],
     });
-
+    console.log('Lay profile thanh cong');
     return NextResponse.json({ ok: true, profileData });  
 }

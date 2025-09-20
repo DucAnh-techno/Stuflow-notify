@@ -36,6 +36,6 @@ export async function GET(username: string, password: string, token: string, dat
         }),
     });
     }
-
+    console.log('Lay lich thang thanh cong');
     return NextResponse.json({ ok: true, lichThang });  
 }

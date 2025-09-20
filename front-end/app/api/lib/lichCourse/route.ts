@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { db } from "../../../../../back-end/lib/firebaseAdmin.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
   const { username, password } = await req.json();
@@ -45,5 +45,6 @@ export async function GET(req: Request) {
       }),
     });
   }
-
+  console.log('Lay lichj course thanh cong');
+  return NextResponse.json({ ok: true });  return 
 }
