@@ -31,8 +31,9 @@ export async function POST(req: Request) {
     });
 
     if (!resThang.ok) {
-      console.error("Error fetching profile:", resThang.status);
-      return NextResponse.json({ success: false, error: "Không lấy được profile" },{ status: 500 });
+      const text = await resThang.text().catch(() => '');
+      console.error("Error fetching lich Thang:", resThang.status, text);
+      return NextResponse.json({ success: false, error: "Không lấy được lich Thang" },{ status: 500 });
     }
 
     const lichThang = await resThang.json();

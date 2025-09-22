@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     });
 
     if (!resTuan.ok) {
-      console.error("Error fetching profile:", resTuan.status);
-      return NextResponse.json({ success: false, error: "Không lấy được profile" },{ status: 500 });
+      console.error("Error fetching lich Tuan:", resTuan.status);
+      return NextResponse.json({ success: false, error: "Không lấy được lich Tuan" },{ status: 500 });
     }
 
     const lichTuan = await resTuan.json();
