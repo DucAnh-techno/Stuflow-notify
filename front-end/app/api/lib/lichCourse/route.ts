@@ -1,7 +1,6 @@
 // app/api/lib/lichCourse/route.ts (hoặc file bạn đang dùng)
 import { db } from "../../../../../back-end/lib/firebaseAdmin.js";
 import { NextResponse } from "next/server";
-import { FieldValue } from "firebase-admin/firestore";
 
 export async function POST(req: Request) {
   try {
@@ -54,20 +53,18 @@ export async function POST(req: Request) {
       courses: []
     });
 
-    for (const upcoming of allUpcomings) {
-      await db.collection("users").doc(username).update({
-        courses: FieldValue.arrayUnion({
-          id: upcoming.id,
-          name: upcoming.name,
-          activityname: upcoming.activityname,
-          activitystr: upcoming.activitystr,
-          url: upcoming.url,
-          popupname: upcoming.popupname,
-          timestart: upcoming.timestart,
-          coursename: upcoming?.course?.fullname,
-        }),
-      });
-    }
+    const coursesToSave = allUpcomings.map((u) => ({
+      id: u.id,
+      name: u.name,
+      activityname: u.activityname,
+      activitystr: u.activitystr,
+      url: u.url,
+      popupname: u.popupname,
+      timestart: u.timestart,
+      coursename: u?.course?.fullname,
+    }));
+
+    await db.collection("users").doc(username).set({ courses: coursesToSave });
     console.log('Lay lichj course thanh cong');
     return NextResponse.json({ ok: true });   
 

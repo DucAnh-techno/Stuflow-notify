@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
-import { FieldValue } from "firebase-admin/firestore";
+
+interface LichTuanItem {
+  body: {
+    ngayBatDauHoc: string;
+    tenPhong: string;
+    thu: string;
+    tuTiet: number;
+    denTiet: number;
+    maLopHocPhan: string;
+    tenMonHoc: string;
+    isTamNgung: boolean;
+    timeToDisplay: string;
+    link: string;
+  };
+}
 
 export async function POST(req: Request) {
     // Lấy lịch học tuần 
@@ -29,22 +43,21 @@ export async function POST(req: Request) {
         lichTuan: []
     });
 
-    for (const upcoming of lichTuan) {
-        await db.collection("users").doc(username).update({
-        lichTuan: FieldValue.arrayUnion({
-            ngay: upcoming.body.ngayBatDauHoc,
-            tenPhong: upcoming.body.tenPhong,
-            thu: upcoming.body.thu,
-            tuTiet: upcoming.body.tuTiet,
-            denTiet: upcoming.body.denTiet,
-            maLopHocPhan: upcoming.body.maLopHocPhan,
-            tenMonHoc: upcoming.body.tenMonHoc,
-            isTamNgung: upcoming.body.isTamNgung,
-            gioHoc: upcoming.body.timeToDisplay,
-            link: upcoming.body.link,
-        }),
-        });
-    }
+    const lichTuanToSave = lichTuan.map((upcoming: LichTuanItem) => ({
+        ngay: upcoming.body.ngayBatDauHoc,
+        tenPhong: upcoming.body.tenPhong,
+        thu: upcoming.body.thu,
+        tuTiet: upcoming.body.tuTiet,
+        denTiet: upcoming.body.denTiet,
+        maLopHocPhan: upcoming.body.maLopHocPhan,
+        tenMonHoc: upcoming.body.tenMonHoc,
+        isTamNgung: upcoming.body.isTamNgung,
+        gioHoc: upcoming.body.timeToDisplay,
+        link: upcoming.body.link,
+    }));
+
+    await db.collection("users").doc(username).set({ lichTuan: lichTuanToSave });
+
     console.log('Lay lich tuan thanh cong');
     return NextResponse.json({ ok: true, lichTuan });  
-}
+    }
