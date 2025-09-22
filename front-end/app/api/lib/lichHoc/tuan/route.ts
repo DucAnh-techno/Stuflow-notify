@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
     // Lấy lịch học tuần 
 
-    const { searchParams } = new URL(req.url);
-    const username = searchParams.get("username");
-    const token = searchParams.get("token");
-    const date = searchParams.get("date");
+    const body = await req.json();
+    const username = body?.username;
+    const date = body?.date;
+    const token = body?.token;
 
     if (!username || !token || !date) {
         return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });

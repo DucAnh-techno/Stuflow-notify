@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
     // ---B3: Lấy profile 
-    const { searchParams } = new URL(req.url);
-    const username = searchParams.get("username");
-    const password = searchParams.get("password");
-    const token = searchParams.get("token");
+    const body = await req.json();
+    const username = body?.username;
+    const password = body?.password;
+    const token = body?.token;
 
-    if (!username || !token) {
-        return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
+    if (!username || !password || !token) {
+        return NextResponse.json({ error: "Thiếu username hoặc password, token ở fetch Profile" }, { status: 400 });
     }
 
     const pro_res = await fetch("https://portal.ut.edu.vn/api/v1/user/getSummaryProfile", {
