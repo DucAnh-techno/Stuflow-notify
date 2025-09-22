@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 
-export async function GET(username: string, password: string, token: string, date: string) {
+export async function GET(req: Request) {
     // Lấy lịch học tuần 
+
+    const { searchParams } = new URL(req.url);
+    const username = searchParams.get("username");
+    const token = searchParams.get("token");
+    const date = searchParams.get("date");
+
+    if (!username || !token || !date) {
+        return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
+    }
+  
     const resTuan = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/tuan?date=${date}`, {
       headers: { Authorization: `Bearer ${token}` },
     });

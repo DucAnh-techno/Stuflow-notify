@@ -8,7 +8,17 @@ type Subject = {
     color: string;
 };
 
-export async function GET(username: string, password: string, token: string, date: string) {
+export async function GET(req: Request) {
+
+    const { searchParams } = new URL(req.url);
+    const username = searchParams.get("username");
+    const token = searchParams.get("token");
+    const date = searchParams.get("date");
+
+    if (!username || !token || !date) {
+        return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
+    }
+
     // Lấy lịch học tháng 
     const resThang = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/thang?date=${date}`, {
       headers: { Authorization: `Bearer ${token}` },
