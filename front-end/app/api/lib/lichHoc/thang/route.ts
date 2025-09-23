@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
 
-type Subject = {
-    name: string;
+ interface Subject {
     nameToDisplay: string;
-    color: string;
 };
-interface Upcoming {
-  body: {
-    date: string;
-    total: number;
-    subjects: Subject[];
-  };
+export interface DayItem {
+  date: string;      // "10/09/2025"
+  total: number;     // 1
+  subjects: Subject[];
 }
 
 export async function POST(req: Request) {
@@ -34,13 +30,16 @@ export async function POST(req: Request) {
     }
 
     const lichThang = await resThang.json();
+    const items = Array.isArray(lichThang?.body) ? lichThang.body : [];
 
-    const lichThangToSave = lichThang.map((upcoming: Upcoming) => ({
-        ngay: upcoming.body.date,
-        total: upcoming.body.total,
-        subjects: upcoming.body.subjects.map((s: Subject) => ({
-            tenMonHoc: s.nameToDisplay,
-        })),
+    const lichThangToSave: DayItem[] = items.map((it: DayItem) => ({
+      date: it.date, 
+      total: it.total,
+      subjects: Array.isArray(it.subjects)
+        ? it.subjects.map((s) => ({
+            name: s.nameToDisplay,
+          }))
+        : [],
     }));
 
     await db.collection("users").doc(username).set({ lichThang: lichThangToSave }, {merge: true});

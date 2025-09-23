@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/lib/firebaseAdmin";
 
 interface LichTuanItem {
-  body: {
     ngayBatDauHoc: string;
     tenPhong: string;
     thu: string;
@@ -13,7 +12,6 @@ interface LichTuanItem {
     isTamNgung: boolean;
     timeToDisplay: string;
     link: string;
-  };
 }
 
 export async function POST(req: Request) {
@@ -38,23 +36,24 @@ export async function POST(req: Request) {
     }
 
     const lichTuan = await resTuan.json();
+    const items = Array.isArray(lichTuan?.body) ? lichTuan.body : [];
+
+    const lichTuanToSave: LichTuanItem[] = items.map((it: LichTuanItem) => ({
+        ngay: it.ngayBatDauHoc,
+        tenPhong: it.tenPhong,
+        thu: it.thu,
+        tuTiet: it.tuTiet,
+        denTiet: it.denTiet,
+        maLopHocPhan: it.maLopHocPhan,
+        tenMonHoc: it.tenMonHoc,
+        isTamNgung: it.isTamNgung,
+        gioHoc: it.timeToDisplay,
+        link: it.link,
+    })) 
 
     await db.collection("users").doc(username).update({
         lichTuan: []
     });
-
-    const lichTuanToSave = lichTuan.map((upcoming: LichTuanItem) => ({
-        ngay: upcoming.body.ngayBatDauHoc,
-        tenPhong: upcoming.body.tenPhong,
-        thu: upcoming.body.thu,
-        tuTiet: upcoming.body.tuTiet,
-        denTiet: upcoming.body.denTiet,
-        maLopHocPhan: upcoming.body.maLopHocPhan,
-        tenMonHoc: upcoming.body.tenMonHoc,
-        isTamNgung: upcoming.body.isTamNgung,
-        gioHoc: upcoming.body.timeToDisplay,
-        link: upcoming.body.link,
-    }));
 
     await db.collection("users").doc(username).set({ lichTuan: lichTuanToSave }, {merge: true});
 
