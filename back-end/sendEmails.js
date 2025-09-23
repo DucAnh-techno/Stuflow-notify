@@ -1,7 +1,6 @@
 import { db } from "./lib/firebaseAdmin.js";
 import nodemailer from "nodemailer";
-import { FieldValue } from "firebase-admin/firestore";
-
+import { NextResponse } from "next/server";
 
 /**
  * @typedef {Object} Upcoming
@@ -95,24 +94,20 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
         const upcomings_T = json_thnn?.data?.upcoming;
         const allUpcomings = [...upcomings_C, ...upcomings_T];
 
-        await db.collection("users").doc(user.username).update({
-          courses: []
-        });
+        await db.collection("users").doc(user.username).update({courses: []});
 
-        for (const upcoming of allUpcomings) {
-          await db.collection("users").doc(user.username).update({
-            courses: FieldValue.arrayUnion({
-              id: upcoming.id,
-              name: upcoming.name,
-              activityname: upcoming.activityname,
-              activitystr: upcoming.activitystr,
-              url: upcoming.url,
-              popupname: upcoming.popupname,
-              timestart: upcoming.timestart,
-              coursename: upcoming?.course?.fullname,
-            }),
-          });
-        }
+        const courseToSave = allUpcomings.map((u) => ({
+          id: u.id,
+          name: u.name,
+          activityname: u.activityname,
+          activitystr: u.activitystr,
+          url: u.url,
+          popupname: u.popupname,
+          timestart: u.timestart,
+          coursename: u?.course?.fullname,
+        }));
+
+        await db.collection("users").doc(user.username).set({courses: courseToSave}, {merge: true});
         
         console.log("Đang xem course của :", user.name);
         for (const course of allUpcomings) {
@@ -154,9 +149,9 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
 
 
     console.log("✅ Hoàn thành gửi email cho tất cả users");
-    process.exit(0);
-  } catch (error) {
-    console.error("❌ Lỗi:", error);
-    process.exit(1);
+    return NextResponse.json({ok: true});
+  } catch (err) {
+    console.error("❌ Lỗi:", err);
+    return NextResponse.json({error: err}, {status: 500});
   }
 }) ();

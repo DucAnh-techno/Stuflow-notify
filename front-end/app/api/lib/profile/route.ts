@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       username,
       password,
       courses: [],
-    });
+    }, {merge: true});
     console.log('Lay profile thanh cong');
     return NextResponse.json({ ok: true, profileData });  
 }

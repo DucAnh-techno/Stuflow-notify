@@ -56,7 +56,7 @@ export async function POST(req: Request) {
         link: upcoming.body.link,
     }));
 
-    await db.collection("users").doc(username).set({ lichTuan: lichTuanToSave });
+    await db.collection("users").doc(username).set({ lichTuan: lichTuanToSave }, {merge: true});
 
     console.log('Lay lich tuan thanh cong');
     return NextResponse.json({ ok: true, lichTuan });  

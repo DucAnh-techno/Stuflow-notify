@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       coursename: u?.course?.fullname,
     }));
 
-    await db.collection("users").doc(username).set({ courses: coursesToSave });
+    await db.collection("users").doc(username).set({ courses: coursesToSave }, {merge: true});
     console.log('Lay lichj course thanh cong');
     return NextResponse.json({ ok: true });   
 

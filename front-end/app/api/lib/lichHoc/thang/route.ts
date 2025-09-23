@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         })),
     }));
 
-    await db.collection("users").doc(username).set({ lichThang: lichThangToSave });
+    await db.collection("users").doc(username).set({ lichThang: lichThangToSave }, {merge: true});
 
     console.log('Lay lich thang thanh cong');
     return NextResponse.json({ ok: true });  
