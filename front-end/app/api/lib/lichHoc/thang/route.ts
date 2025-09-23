@@ -15,13 +15,10 @@ interface Upcoming {
 }
 
 export async function POST(req: Request) {
-
     const body = await req.json();
-    const username = body?.username;
-    const date = body?.date;
-    const token = body?.token;
+    const { username, password, token, date } = body;
 
-    if (!username || !token || !date) {
+    if (!username || !token || !date || !password) {
         return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
     }
 
