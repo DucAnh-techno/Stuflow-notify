@@ -60,7 +60,9 @@ export async function POST(req: Request) {
       activitystr: u.activitystr,
       url: u.url,
       popupname: u.popupname,
-      timestart: `${String(new Date(u.timestart * 1000).getDate()).padStart(2, "0")}-${String(new Date(u.timestart * 1000).getMonth() + 1).padStart(2, "0")}-${new Date(u.timestart * 1000).getFullYear()}`,
+      eventtype: u.eventtype,
+      daystart: `${String(new Date(u.timestart * 1000).getDate()).padStart(2, "0")}-${String(new Date(u.timestart * 1000).getMonth() + 1).padStart(2, "0")}-${new Date(u.timestart * 1000).getFullYear()}`,
+      timestart: u.timestart,
       coursename: u?.course?.fullname,
     }));
 
