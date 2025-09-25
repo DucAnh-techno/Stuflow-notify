@@ -25,38 +25,40 @@ export async function POST(req: Request) {
     if (!username || !token || !date) {
         return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
     }
+
+    const lichTuanToSave: LichTuanItem[] = [];
   
-    const resTuan = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/tuan?date=${date}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    await Promise.all(date.map(async (d: string) => {
+        const resTuan = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/tuan?date=${d}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        });
 
-    if (!resTuan.ok) {
-      console.error("Error fetching lich Tuan:", resTuan.status);
-      return NextResponse.json({ success: false, error: "Không lấy được lich Tuan" },{ status: 500 });
-    }
+        if (!resTuan.ok) {
+        console.error("Error fetching lich Tuan:", resTuan.status);
+        return NextResponse.json({ success: false, error: "Không lấy được lich Tuan" },{ status: 500 });
+        }
 
-    const lichTuan = await resTuan.json();
-    const items = Array.isArray(lichTuan?.body) ? lichTuan.body : [];
+        const lichTuan = await resTuan.json();
+        const items = Array.isArray(lichTuan?.body) ? lichTuan.body : [];
 
-    const lichTuanToSave: LichTuanItem[] = items.map((it: LichTuanItem) => ({
-        ngay: it.ngayBatDauHoc,
-        tenPhong: it.tenPhong,
-        thu: it.thu,
-        tuTiet: it.tuTiet,
-        denTiet: it.denTiet,
-        maLopHocPhan: it.maLopHocPhan,
-        tenMonHoc: it.tenMonHoc,
-        isTamNgung: it.isTamNgung,
-        gioHoc: it.timeToDisplay,
-        link: it.link,
-    })) 
+        const temp: LichTuanItem[] = items.map((it: LichTuanItem) => ({
+            ngay: it.ngayBatDauHoc,
+            tenPhong: it.tenPhong,
+            thu: it.thu,
+            tuTiet: it.tuTiet,
+            denTiet: it.denTiet,
+            maLopHocPhan: it.maLopHocPhan,
+            tenMonHoc: it.tenMonHoc,
+            isTamNgung: it.isTamNgung,
+            gioHoc: it.timeToDisplay,
+            link: it.link,
+        }));
 
-    await db.collection("users").doc(username).update({
-        lichTuan: []
-    });
+        lichTuanToSave.push(...temp);
+    }));
 
     await db.collection("users").doc(username).set({ lichTuan: lichTuanToSave }, {merge: true});
 
     console.log('Lay lich tuan thanh cong');
-    return NextResponse.json({ ok: true, lichTuan });  
+    return NextResponse.json({ ok: true });  
     }

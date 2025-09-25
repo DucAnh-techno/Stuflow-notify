@@ -71,7 +71,7 @@ const emailHTML = (courseName, popupName, countdown, result, url) => `
     });
         
     console.log("Đang xem course của :", user.name);
-    for (const course of user.courses) {
+    for (const course of users.courses) {
       const date = new Date().getTime() / 1000;
       const result = (course.timestart - date) ;
       const coursedisplay = course.coursename?.split(" - ")[1] || "";

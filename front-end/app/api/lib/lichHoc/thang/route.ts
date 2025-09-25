@@ -11,15 +11,17 @@ export interface DayItem {
 }
 
 export async function POST(req: Request) {
-    const body = await req.json();
-    const { username, password, token, date } = body;
+  const body = await req.json();
+  const { username, password, token, date } = body;
 
-    if (!username || !token || !date || !password) {
-        return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
-    }
+  if (!username || !token || !date || !password) {
+      return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
+  }
+  const lichThangToSave: DayItem[] = [];
 
+  await Promise.all(date.map(async (d: string) => {
     // Lấy lịch học tháng 
-    const resThang = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/thang?date=${date}`, {
+    const resThang = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/thang?date=${d}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -32,7 +34,7 @@ export async function POST(req: Request) {
     const lichThang = await resThang.json();
     const items = Array.isArray(lichThang?.body) ? lichThang.body : [];
 
-    const lichThangToSave: DayItem[] = items.map((it: DayItem) => ({
+    const temp: DayItem[] = items.map((it: DayItem) => ({
       date: it.date, 
       total: it.total,
       subjects: Array.isArray(it.subjects)
@@ -42,8 +44,12 @@ export async function POST(req: Request) {
         : [],
     }));
 
-    await db.collection("users").doc(username).set({ lichThang: lichThangToSave }, {merge: true});
+    lichThangToSave.push(...temp);
 
-    console.log('Lay lich thang thanh cong');
-    return NextResponse.json({ ok: true });  
+  }));
+
+  await db.collection("users").doc(username).set({ lichThang: lichThangToSave }, {merge: true});
+
+  console.log('Lay lich thang thanh cong');
+  return NextResponse.json({ ok: true });  
 }
