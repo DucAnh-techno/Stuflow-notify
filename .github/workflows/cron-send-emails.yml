@@ -3,7 +3,7 @@ name: Cron — Send Emails (Hourly)
 # chạy định kỳ + có thể trigger thủ công
 on:
   schedule:
-    - cron: '0 */2 * * *'   # every hour at minute 0 (UTC). See note về timezone dưới.
+    - cron: '0 * * * *'   # every hour at minute 0 (UTC). See note về timezone dưới.
   workflow_dispatch: {}
 
 concurrency:
