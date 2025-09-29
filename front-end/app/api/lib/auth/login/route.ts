@@ -61,10 +61,7 @@ export async function POST(req: Request) {
       birth: profileData.body.ngaySinh2,
       username,
       password,
-      courses: [],
-      lichThang: [],
-      lichTuan: [],
-    });
+    }, {merge: true});
 
     return NextResponse.json({ ok: true, dataLogin });   
   } catch (err) {
