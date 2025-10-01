@@ -42,7 +42,7 @@ export async function POST(req: Request) {
         const items = Array.isArray(lichTuan?.body) ? lichTuan.body : [];
 
         const temp: LichTuanItem[] = items.map((it: LichTuanItem) => ({
-            ngay: it.ngayBatDauHoc,
+            daystart: it.ngayBatDauHoc,
             tenPhong: it.tenPhong,
             thu: it.thu,
             tuTiet: it.tuTiet,
