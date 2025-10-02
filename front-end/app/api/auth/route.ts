@@ -68,6 +68,7 @@ export async function POST(req: Request) {
       courses: [],
       lichThang: [],
       lichTuan: [],
+      files: []
     });
 
     // ✅ Thành công

@@ -17,7 +17,16 @@ export async function POST(req: Request) {
   if (!username || !token || !date || !password) {
       return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
   }
-  const lichThangToSave: DayItem[] = [];
+
+  const docSnap = await db.collection("users").doc(username).get();
+  if (!docSnap.exists) {
+  console.log(docSnap.data());
+  return;
+  }
+
+  const data = docSnap.data();
+
+  const lichThangToSave: DayItem[] = (data?.lichThang) ? data.lichThang : [];
 
   await Promise.all(date.map(async (d: string) => {
     // Lấy lịch học tháng 
