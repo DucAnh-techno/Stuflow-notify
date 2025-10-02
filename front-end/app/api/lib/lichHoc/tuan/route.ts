@@ -25,17 +25,8 @@ export async function POST(req: Request) {
     if (!username || !token || !date) {
         return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
     }
-
-    const docSnap = await db.collection("users").doc(username).get();
-    if (!docSnap.exists) {
-    console.log(docSnap.data());
-    return;
-    }
-
-    const data = docSnap.data();
-
-
-    const lichTuanToSave: LichTuanItem[] = (data?.lichTuan) ? data.lichTuan : [];
+    
+    const lichTuanToSave: LichTuanItem[] = [];
   
     await Promise.all(date.map(async (d: string) => {
         const resTuan = await fetch(`https://portal.ut.edu.vn/api/v1/lichhoc/tuan?date=${d}`, {
