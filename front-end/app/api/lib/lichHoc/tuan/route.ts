@@ -19,8 +19,15 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const username = body?.username;
-    const date = body?.date;
     const token = body?.token;
+
+    const now = new Date();
+    const month = now.getMonth();
+    const day = now.getDate();
+
+    const date: string[] = [-14, -7, 0, 7, 14, 21, 28, 35, 42].map(offset =>
+      formatDate(new Date(now.getFullYear(), month, day + offset))
+    );
 
     if (!username || !token || !date) {
         return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
@@ -61,4 +68,11 @@ export async function POST(req: Request) {
 
     console.log('Lay lich tuan thanh cong');
     return NextResponse.json({ ok: true });  
-    }
+}
+
+function formatDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

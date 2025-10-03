@@ -12,7 +12,14 @@ export interface DayItem {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { username, password, token, date } = body;
+  const { username, password, token } = body;
+
+  const now = new Date();
+  const month = now.getMonth();
+
+    const date: string[] = [-1, 0, 1, 2, 3].map(offset =>
+      getFirstDayOfMonth(new Date(now.getFullYear(), month + offset, 1))
+    );
 
   if (!username || !token || !date || !password) {
       return NextResponse.json({ error: "Thiếu username hoặc token, date ở fetch lich Thang" }, { status: 400 });
@@ -53,4 +60,10 @@ export async function POST(req: Request) {
 
   console.log('Lay lich thang thanh cong');
   return NextResponse.json({ ok: true });  
+}
+
+function getFirstDayOfMonth(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // thêm số 0 ở trước nếu <10
+  return `${year}-${month}-01`;
 }
