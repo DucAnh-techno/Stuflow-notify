@@ -55,12 +55,19 @@ export async function POST(req: Request) {
     const profileData = await pro_res.json();
 
     await db.collection("users").doc(profileData.body.maSinhVien).set({
+      avatar: "",
       name: profileData.body.hoDem + " " + profileData.body.ten,
       email: profileData.body.email,
       number: profileData.body.soDienThoai,
       birth: profileData.body.ngaySinh2,
       username,
       password,
+      courses: [],
+      itemSaved: [],
+      lichThang: [],
+      lichTuan: [],
+      pictures: [],
+      schedule: []
     }, {merge: true});
 
     return NextResponse.json({ ok: true, dataLogin });   
