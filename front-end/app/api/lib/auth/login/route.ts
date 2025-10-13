@@ -62,12 +62,6 @@ export async function POST(req: Request) {
       birth: profileData.body.ngaySinh2,
       username,
       password,
-      courses: [],
-      itemSaved: [],
-      lichThang: [],
-      lichTuan: [],
-      pictures: [],
-      schedule: []
     }, {merge: true});
 
     return NextResponse.json({ ok: true, dataLogin });   
